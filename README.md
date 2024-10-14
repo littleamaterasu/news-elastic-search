@@ -1,0 +1,1 @@
+# news-elastic-search
