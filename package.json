@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 node crawl-vn-express.js",
+    "dev": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 nodemon index.js",
+    "crawl": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 node crawl-vn-express.js",
     "dump": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 node dump.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

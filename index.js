@@ -1,7 +1,12 @@
 // Import Elasticsearch client and other required modules
 const { Client } = require('@elastic/elasticsearch');
 const fs = require('fs');
+const express = require('express');
 
+const app = express();
+app.use(express.json());
+
+const port = 3000;
 // Tạo một client để kết nối với Elasticsearch
 const client = new Client({
     node: 'https://localhost:9200',
@@ -13,79 +18,52 @@ const client = new Client({
 // Chỉ export index abcs 1 lần duy nhất
 const indexName = 'abcs'; // Replace with your index name
 
-async function exportIndex() {
-    const fileName = 'export_abcs.json';
-    const writeStream = fs.createWriteStream(fileName);
+const importToES = async () => {
+    const raw = fs.readFileSync('data.json', 'utf-8');
+    const data = JSON.parse(raw);
 
-    try {
-        // Search query to get all documents up to the size limit (25 documents in this case)
-        const searchResult = await client.search({
-            index: indexName,
-            q: '*', // Match all documents
-            size: 25 // Export 25 documents
-        });
+    const result = await client.helpers.bulk({
+        datasource: data,
+        onDocument: (doc) => ({ index: { _index: indexName } }),
+    });
 
-        const documents = searchResult.hits.hits;
-        console.log(`Exporting ${documents.length} documents from index ${indexName}.`);
-
-        // Write all documents to file
-        writeStream.write(JSON.stringify(documents, null, 2));
-
-        // Close the write stream
-        writeStream.end(() => console.log(`Export completed and saved to ${fileName}`));
-    } catch (error) {
-        console.error('Error during export:', error);
-    }
+    console.log(result);
 }
 
-const searchWithAggregation = async () => {
+// API để tìm kiếm dữ liệu trong Elasticsearch
+app.post('/search', async (req, res) => {
+    console.log("request", req.query)
+    const { query } = req.body; // Nhận query tìm kiếm từ yêu cầu
+
     try {
-        // Truy vấn với Aggregation
-        const response = await client.search({
-            index: 'abcs',  // Đổi sang tên chỉ mục của bạn
-            size: 0, // Không cần trả về tài liệu
-            aggs: {
-                "unique_timeAgo": {
-                    terms: {
-                        field: 'timeAgo', // Sử dụng trường keyword
-                        size: 1000 // Điều chỉnh kích thước theo số lượng giá trị bạn muốn lấy
+        // Thực hiện truy vấn tìm kiếm trong Elasticsearch
+        const result = await client.search({
+            index: indexName,
+            body: {
+                query: {
+                    multi_match: {
+                        query: query,
+                        fields: ['title', 'description'] // Thay thế bằng các trường bạn muốn tìm kiếm
                     }
                 }
             }
         });
 
-        // Lấy các buckets từ Aggregation
-        let buckets = response.aggregations.unique_title.buckets;
-        let tokens = [];
-        buckets.forEach(ele => {
-            tokens.push(ele.key);
+        const searchedItems = result.hits.hits;
+        const returnItems = [];
+        searchedItems.forEach(element => {
+            returnItems.push(element._source);
         });
 
-        // Lưu buckets vào file dictionary.json
-        fs.writeFileSync('dictionary.json', JSON.stringify(buckets, null, 2), 'utf8');
-        console.log('Buckets saved to dictionary.json');
-
-        // 3-gram phân tích
-        const ngram = await client.indices.analyze({
-            body: {
-                tokenizer: {
-                    type: "ngram",
-                    min_gram: 2,
-                    max_gram: 3,
-                    token_chars: ["letter", "digit", "symbol"]
-                },
-                text: tokens
-            }
-        });
-
-        // Lưu ngram kết quả vào ngram.json
-        fs.writeFileSync('ngram.json', JSON.stringify(ngram.tokens, null, 2), 'utf8');
-        console.log('Ngram tokens saved to ngram.json');
-
+        // Trả về kết quả tìm kiếm cho người dùng
+        res.status(200).json(returnItems);
     } catch (error) {
-        console.error('Error executing search with aggregation:', error);
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while searching data', error });
     }
-};
+});
 
-// Chạy hàm thực hiện truy vấn
-searchWithAggregation();
+// Khởi động server
+app.listen(port, () => {
+    console.log(`API server listening at http://localhost:${port}`);
+});

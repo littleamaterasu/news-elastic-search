@@ -2,6 +2,8 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
+const fileName = 'data1.json';
+
 // Danh sách các URL với -p2 và -p3
 const urls = [
     'https://vnexpress.net/tin-tuc-24h',
@@ -13,7 +15,6 @@ let articles = [];
 let crawledLinks = new Set(); // Dùng để lưu các link đã crawl
 
 const setCrawledLinks = () => {
-    const fileName = 'data.json';
 
     // Đọc dữ liệu hiện tại từ file (nếu có)
     let existingData = [];
@@ -29,7 +30,6 @@ const setCrawledLinks = () => {
 
 // Hàm ghi dữ liệu vào file JSON
 const writeDataToFile = () => {
-    const fileName = 'data.json';
 
     // Đọc dữ liệu hiện tại từ file (nếu có)
     let existingData = [];
@@ -114,6 +114,8 @@ const fetchDataFromUrl = async (url) => {
 const main = async () => {
     // for (const url of urls) {
     await fetchDataFromUrl(urls[0]);
+    await fetchDataFromUrl(urls[1]);
+    await fetchDataFromUrl(urls[2]);
     // }
 
     // Sau khi tất cả các bài viết đã được fetch, ghi dữ liệu vào file
@@ -125,4 +127,4 @@ setCrawledLinks();
 main();
 
 // Lặp lại việc crawl mỗi 5 phút
-setInterval(main, 300000); // 5 phút
+//setInterval(main, 300000); // 5 phút
