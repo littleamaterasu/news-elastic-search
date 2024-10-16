@@ -2,13 +2,20 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
-const fileName = 'data1.json';
+const fileName = 'data3.json';
 
 // Danh sách các URL với -p2 và -p3
 const urls = [
-    'https://vnexpress.net/tin-tuc-24h',
-    'https://vnexpress.net/tin-tuc-24h-p2',
-    'https://vnexpress.net/tin-tuc-24h-p3',
+    'https://vnexpress.net/kinh-doanh',
+    'https://vnexpress.net/the-gioi',
+    'https://vnexpress.net/thoi-su',
+    'https://vnexpress.net/khoa-hoc',
+    'https://vnexpress.net/giai-tri',
+	'https://vnexpress.net/the-thao',
+	'https://vnexpress.net/phap-luat',
+	'https://vnexpress.net/giao-duc',
+	'https://vnexpress.net/suc-khoe',
+	'https://vnexpress.net/oto-xe-may'
 ];
 let articles = [];
 
@@ -112,11 +119,11 @@ const fetchDataFromUrl = async (url) => {
 
 // Hàm chính để crawl dữ liệu từ tất cả các URL
 const main = async () => {
-    // for (const url of urls) {
-    await fetchDataFromUrl(urls[0]);
-    await fetchDataFromUrl(urls[1]);
-    await fetchDataFromUrl(urls[2]);
-    // }
+    for (const url of urls) {
+    	await fetchDataFromUrl(url);
+    //await fetchDataFromUrl(urls[1]);
+    //await fetchDataFromUrl(urls[2]);
+    }
 
     // Sau khi tất cả các bài viết đã được fetch, ghi dữ liệu vào file
     writeDataToFile();
@@ -127,4 +134,4 @@ setCrawledLinks();
 main();
 
 // Lặp lại việc crawl mỗi 5 phút
-//setInterval(main, 300000); // 5 phút
+setInterval(main, 300000); // 5 phút
