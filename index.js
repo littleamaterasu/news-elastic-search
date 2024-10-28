@@ -36,22 +36,22 @@ const importToES = async () => {
 
 // importToES();
 app.get('/showAll', async (req, res) => {
-  try {
-    const result = await client.search({
-      index: 'abcs', // Thay 'my_index' bằng tên index của bạn
-      body: {
-        query: {
-		match_all: {}
-	}, // Truyền query từ body của request
-        size: 1000            // Trả về tối đa 1000 kết quả
-      }
-    });
+    try {
+        const result = await client.search({
+            index: 'abcs', // Thay 'my_index' bằng tên index của bạn
+            body: {
+                query: {
+                    match_all: {}
+                }, // Truyền query từ body của request
+                size: 1000            // Trả về tối đa 1000 kết quả
+            }
+        });
 
-    res.json(result.hits.hits); // Trả về các hits từ kết quả truy vấn
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error executing search query' });
-  }
+        res.json(result.hits.hits); // Trả về các hits từ kết quả truy vấn
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error executing search query' });
+    }
 });
 
 // API để tìm kiếm dữ liệu trong Elasticsearch
